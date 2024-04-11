@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """
-This module provides a function that defines the Pascal's Triangle given a size.
+This module provides a function that defines
+the Pascal's Triangle given a size.
 """
 
 
@@ -16,7 +17,7 @@ def pascal_triangle(n):
     """
     if n <= 0:
         return []
-    
+
     triangle = [[1]]
     for i in range(1, n):
         row = [1]
