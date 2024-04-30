@@ -42,8 +42,7 @@ def parse_line(line):
         date: the date
         None: if the line does not match the pattern
     """
-    pattern = (r"(\d+\.\d+\.\d+\.\d+) - \[(.*?)\] "
-               r"\"GET /projects/260 HTTP/1\.1\" (\d+) (\d+)")
+    pattern = (r"(\d+\.\d+\.\d+\.\d+) - \[(.*?)\] \"GET /projects/260 HTTP/1\.1\" (\d+) (\d+)")
     match = re.match(pattern, line)
     if match:
         ip_address, date, status_code, file_size = match.groups()
