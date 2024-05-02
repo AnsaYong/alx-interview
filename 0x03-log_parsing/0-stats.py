@@ -1,7 +1,30 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """This module provides reads staandard inout line by line and
 computes metrics"""
-from collections import defaultdict
+import sys
+import re
+import signal
+
+
+# Initialize variables
+total_size = 0
+line_count = 0
+status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+
+
+def handler(signal, frame):
+    """Signal handler for SIGINT
+
+    Args:
+        signal: the signal number
+        frame: the current stack frame
+
+    Returns:
+        None
+    """
+    print_stats()
+    sys.exit(0)
+
 
 def parse_line(line):
     """Parses a line of format
@@ -19,58 +42,41 @@ def parse_line(line):
         date: the date
         None: if the line does not match the pattern
     """
-    parts = line.split()
-    if len(parts) < 10:
+    pattern = (r'^(\d+\.\d+\.\d+\.\d+) - \[(.+)\] '
+               r'"GET /projects/260 HTTP/1\.1" (\d+) (\d+)$')
+    match = re.match(pattern, line)
+    if match:
+        ip_address, date, status_code, file_size = match.groups()
+        return int(file_size), int(status_code), ip_address, date
+    else:
         return None
-    ip_address = parts[0]
-    status_code = parts[-2]
-    file_size = parts[-1]
-    if not status_code.isdigit():
-        return None
-    return ip_address, status_code, int(file_size)
 
-def print_stats(file_sizes, status_codes):
+
+def print_stats():
     """Prints the computed metrics
 
     Args:
-        file_sizes (list): a list of file sizes
-        status_codes (dict): a dictionary of status codes and their counts
-
+        None
     Returns:
         None
     """
-    total_size = sum(file_sizes)
-    print(f"Total file size: {total_size}")
-    for code in sorted(status_codes.keys()):
-        print(f"{code}: {status_codes[code]}")
+    print("File size: {}".format(total_size))
+    for k, v in sorted(status_codes.items()):
+        if v > 0:
+            print("{}: {}".format(k, v))
 
-def main():
-    """Reads standard input line by line and computes metrics
 
-    Args:
-        None
+# Register signal handler (to handle ctrl+c)
+signal.signal(signal.SIGINT, handler)
 
-    Returns:
-        None
-    """
-    file_sizes = []
-    status_codes = defaultdict(int)
-    try:
-        while True:
-            try:
-                line = input().strip()
-            except EOFError:
-                break
-            parsed = parse_line(line)
-            if not parsed:
-                continue
-            ip_address, status_code, size = parsed
-            file_sizes.append(size)
-            status_codes[status_code] += 1
-            if len(file_sizes) % 10 == 0:
-                print_stats(file_sizes, status_codes)
-    except KeyboardInterrupt:
-        print_stats(file_sizes, status_codes)
-
-if __name__ == "__main__":
-    main()
+# Read line by line from stdin
+for line in sys.stdin:
+    line = line.strip()
+    metrics = parse_line(line)
+    if metrics:
+        file_size, status_code, ip_address, date = metrics
+        total_size += file_size
+        status_codes[status_code] += 1
+        line_count += 1
+        if line_count % 10 == 0:
+            print_stats()
