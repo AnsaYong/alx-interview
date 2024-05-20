@@ -20,40 +20,41 @@ const url = `https://swapi-api.hbtn.io/api/films/${movieId}/`;
 request(url, { json: true }, (error, response, body) => {
   if (error) {
     console.error('Error retreiving movie data:', error);
-    return;
-  }
-
+      return;
+    }
+    
   if (response.statusCode !== 200) {
     console.error(`Failed to fetch movie with ID ${movieId}`);
+      return;
   }
-
+    
   //console.log('Status Code:', response && response.statusCode);
   //console.log('Body:', body);
-
+    
   // Get list of character urls from the movie
-const characterUrls = body.characters;
-
-if (characterUrls.length === 0 || !characterUrls) {
-  console.log('No characters found');
-  return;
-}
-
-
-// Iterate over each character URL and make a GET request to fetch the character
-characterUrls.forEach((characterUrl) => {
-  request(characterUrl, { json: true }, (error, response, body) => {
-    if (error) {
-      console.error('Error fetching character data:', error);
+  const characterUrls = body.characters;
+    
+  if (characterUrls.length === 0 || !characterUrls) {
+    console.log('No characters found');
       return;
-    }
-
-    if (response.statusCode !== 200) {
-      console.error(`Failed to fetch character with URL ${characterUrl}`);
-      return;
-    }
-
-    // Print the character name
-    console.log(body.name);
+  }
+    
+    
+  // Iterate over each character URL and make a GET request to fetch the character
+  characterUrls.forEach((characterUrl) => {
+    request(characterUrl, { json: true }, (error, response, body) => {
+      if (error) {
+        console.error('Error fetching character data:', error);
+          return;
+      }
+    
+      if (response.statusCode !== 200) {
+        console.error(`Failed to fetch character with URL ${characterUrl}`);
+          return;
+      }
+    
+      // Print the character name
+      console.log(body.name);
+      });
     });
-});
 });
