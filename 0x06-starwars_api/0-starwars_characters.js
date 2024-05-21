@@ -1,6 +1,6 @@
 #!/usr/bin/node
-// Import the 'request' module to make HTTP requests
-const request = require('request');
+// Import the 'request-promise' module to make HTTP requests
+const rp = require('request-promise');
 
 // Check if the movie ID is provided as a command-line argument
 if (process.argv.length < 3) {
@@ -13,46 +13,25 @@ const movieId = process.argv[2];
 // Construct the URL to the Star Wars API
 const url = `https://swapi-api.hbtn.io/api/films/${movieId}/`;
 
-// console.log(`url: ${url}`);
+(async () => {
+  try {
+    // Make a GET request to the Star Wars API
+    const response = await rp(url, { json: true });
 
-// Make a GET request to the Star Wars API
-request(url, { json: true }, (error, response, body) => {
-  if (error) {
-    console.error('Error retreiving movie data:', error);
-    return;
+    // Get list of character urls from the movie
+    const characterUrls = response.characters;
+
+    if (characterUrls.length === 0 || !characterUrls) {
+      console.log('No characters found');
+      return;
+    }
+
+    // Iterate over each character URL and make a GET request to fetch the character
+    for (const characterUrl of characterUrls) {
+      const character = await rp(characterUrl, { json: true });
+      console.log(character.name);
+    }
+  } catch (error) {
+    console.error('Error:', error);
   }
-
-  if (response.statusCode !== 200) {
-    console.error(`Failed to fetch movie with ID ${movieId}`);
-    return;
-  }
-
-  // console.log('Status Code:', response && response.statusCode);
-  // console.log('Body:', body);
-
-  // Get list of character urls from the movie
-  const characterUrls = body.characters;
-
-  if (characterUrls.length === 0 || !characterUrls) {
-    console.log('No characters found');
-    return;
-  }
-
-  // Iterate over each character URL and make a GET request to fetch the character
-  characterUrls.forEach((characterUrl) => {
-    request(characterUrl, { json: true }, (error, response, body) => {
-      if (error) {
-        console.error('Error fetching character data:', error);
-        return;
-      }
-
-      if (response.statusCode !== 200) {
-        console.error(`Failed to fetch character with URL ${characterUrl}`);
-        return;
-      }
-
-      // Print the character name
-      console.log(body.name);
-    });
-  });
-});
+})();
