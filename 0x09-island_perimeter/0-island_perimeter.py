@@ -29,11 +29,11 @@ def island_perimeter(grid):
                     neighbor_row = row + direction[0]
                     neighbor_column = column + direction[1]
                     if (
-                        neighbor_row < 0
-                        or neighbor_row == rows
-                        or neighbor_column < 0
-                        or neighbor_column == columns
-                        or grid[neighbor_row][neighbor_column] == 0
+                        neighbor_row < 0 or
+                        neighbor_row == rows or
+                        neighbor_column < 0 or
+                        neighbor_column == columns or
+                        grid[neighbor_row][neighbor_column] == 0
                     ):
                         # Neighbor is out of bounds or is water
                         perimeter += 1
